@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_PASSWORD: session
+      POSTGRES_DB: session
+    volumes: [pgdata:/var/lib/postgresql/data]
+    ports: ["5432:5432"]
+  app:
+    build: .
+    environment:
+      DATABASE_URL: postgres://postgres:session@db:5432/session
+    ports: ["3000:3000"]
+    volumes: [uploads:/app/public/uploads]
+    depends_on: [db]
+volumes:
+  pgdata:
+  uploads:

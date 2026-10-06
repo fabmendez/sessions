@@ -1,0 +1,112 @@
+@import "tailwindcss";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource-variable/inter-tight/index.css";
+@import "@fontsource/jetbrains-mono/400.css";
+@import "@fontsource/jetbrains-mono/500.css";
+
+/*
+  Session — design tokens
+  Plum-ink "studio after dark" base, a single VU-amber signal colour for the one thing you should do next,
+  and generative sleeve artwork carrying all the other colour.
+*/
+:root {
+  --bg: #17121c;
+  --surface: #211a27;
+  --raised: #2b2333;
+  --line: #3b3245;
+  --line-soft: #2e2637;
+  --text: #f1ece5;
+  --muted: #a99fb1;
+  --faint: #776d80;
+  --signal: #f2b544;
+  --signal-ink: #1d1407;
+  --signal-text: #f5c56a;
+  --ok: #8fcfa6;
+  --warn: #efc06b;
+  --stop: #e3929c;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f3f0f5;
+    --surface: #ffffff;
+    --raised: #ebe6ef;
+    --line: #d7cfdd;
+    --line-soft: #e6e0ea;
+    --text: #1d1723;
+    --muted: #645a6c;
+    --faint: #8d8395;
+    --signal: #f2b544;
+    --signal-ink: #1d1407;
+    --signal-text: #8a5300;
+    --ok: #217a4a;
+    --warn: #8a5f00;
+    --stop: #a8394a;
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-signal: var(--signal);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-text: var(--signal-text);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-stop: var(--stop);
+  --font-sans: "Inter Tight Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+html { background: var(--bg); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+/* Display type: the serif does the talking, set tight and large. */
+@utility display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; line-height: 1.02; }
+
+:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; border-radius: 4px; }
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-4 h-10 text-sm font-medium whitespace-nowrap transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+@utility btn-primary { @apply btn bg-signal text-signal-ink hover:brightness-105; }
+@utility btn-secondary { @apply btn border border-line text-text hover:bg-raised; }
+@utility btn-quiet { @apply btn text-muted hover:text-text hover:bg-raised px-3; }
+@utility btn-sm { @apply h-8 px-3 text-[13px]; }
+@utility field { @apply w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-[15px] text-text placeholder:text-faint focus:border-signal focus:outline-none; }
+@utility label { @apply block text-[13px] font-medium text-muted mb-1.5; }
+@utility chip { @apply inline-flex items-center rounded-full border border-line px-2.5 h-7 text-[13px] text-muted whitespace-nowrap; }
+@utility chip-toggle {
+  @apply inline-flex cursor-pointer select-none items-center rounded-full border border-line px-3.5 h-9 text-sm text-muted transition-colors hover:border-faint has-[:checked]:border-signal has-[:checked]:bg-signal has-[:checked]:text-signal-ink;
+}
+@utility panel { @apply rounded-2xl bg-surface; }
+@utility link { @apply text-signal-text underline-offset-4 hover:underline; }
+@utility section-title { @apply display text-[28px] sm:text-[32px]; }
+.chip-toggle:has(:focus-visible) { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* The single orchestrated moment: the record "drops" on the profile hero. */
+@keyframes spin-in { from { transform: rotate(-40deg) scale(0.96); opacity: 0; } to { transform: rotate(0) scale(1); opacity: 1; } }
+.spin-in { animation: spin-in 700ms cubic-bezier(.2,.7,.2,1) both; }
+
+@keyframes eq { 0%,100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
+.eq-bar { transform-origin: bottom; animation: eq 900ms ease-in-out infinite; }
