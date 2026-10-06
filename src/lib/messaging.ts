@@ -1,10 +1,10 @@
 import "server-only";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 
 export async function inboxFor(profileId: string) {
-  return db.execute<{
+  return exec<{
     id: string; last_message_at: Date; other_id: string; other_name: string; other_handle: string; other_seed: number; other_avatar: string | null;
     last_body: string; last_kind: string; last_sender: string; unread: boolean;
   }>(sql`

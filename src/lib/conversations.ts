@@ -1,10 +1,10 @@
 import "server-only";
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 
 export async function findOrCreateConversation(a: string, b: string) {
-  const [row] = await db.execute<{ conversation_id: string }>(sql`
+  const [row] = await exec<{ conversation_id: string }>(sql`
     select cp1.conversation_id from conversation_participants cp1
     join conversation_participants cp2 on cp1.conversation_id = cp2.conversation_id
     where cp1.profile_id = ${a} and cp2.profile_id = ${b}

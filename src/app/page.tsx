@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { eq, sql } from "drizzle-orm";
 import { getViewer } from "@/lib/auth";
 import { creditsForProject, loadOpportunities, openNow } from "@/lib/work";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 import { Wordmark } from "@/components/Nav";
 import { Artwork } from "@/components/Artwork";
@@ -19,7 +19,7 @@ export default async function Landing() {
   const [project] = await db.select().from(s.projects).where(eq(s.projects.slug, "midnight-signals"));
   const credits = project ? await creditsForProject(project.id) : [];
   const calls = await loadOpportunities(openNow, undefined, 3);
-  const [{ n: creators }] = await db.execute<{ n: number }>(sql`select count(*)::int as n from creator_profiles where onboarded_at is not null`);
+  const [{ n: creators }] = await exec<{ n: number }>(sql`select count(*)::int as n from creator_profiles where onboarded_at is not null`);
 
   return (
     <div className="min-h-dvh">

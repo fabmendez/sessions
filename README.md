@@ -6,26 +6,24 @@ The core loop — Profile → Discover → Connect → Collaborate → Credit �
 
 ## Run it
 
-Requires Node 20+ and PostgreSQL 16.
+Requires Node 20+. No database to install.
+
+**Windows:** double-click `start.cmd`. It installs dependencies on the first run, starts everything and opens http://localhost:3000.
+
+**Any OS:**
 
 ```bash
 npm install
-cp .env.example .env            # set DATABASE_URL
-npm run db:migrate
-npm run db:seed
-npm run dev                     # http://localhost:3000
+npm run local            # starts the built-in database + the app
 ```
 
-Or with Docker:
+`npm run local reset` wipes and re-seeds the demo data; `npm run local prod` runs a production build. Stop with Ctrl+C.
 
-```bash
-docker compose up -d --build
-docker compose run --rm app npm run db:seed
-```
+The built-in database is embedded PostgreSQL compiled to WebAssembly ([PGlite](https://pglite.dev)), stored in `./.pglite`, and served to the app on 127.0.0.1:5433 by `scripts/local.ts` — it works anywhere Node does, including Windows on ARM.
+
+**With a real PostgreSQL server** (production, VPS): set `DATABASE_URL` in `.env`, then `npm run db:migrate && npm run db:seed && npm run dev` (or `npm run build && npm start`). Docker: `docker compose up -d --build`, then `docker compose run --rm app npm run db:seed`.
 
 **Demo login:** `lewis@session.test` / `session` (pre-filled on the login page). Every seeded creator uses the password `session` — log in as `amara@session.test`, `thandi@session.test` etc. to see the other side of an interaction.
-
-`npm run db:reset` drops everything, re-migrates and re-seeds.
 
 ## What's in the seed
 

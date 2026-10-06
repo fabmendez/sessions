@@ -5,7 +5,7 @@ import { requireProfile } from "@/lib/auth";
 import { creditsForProject, loadOpportunities, loadProject, projectActivityFeed } from "@/lib/work";
 import { PROJECT_STATUSES, categoryName } from "@/lib/taxonomy";
 import { timeAgo } from "@/lib/format";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 import { Artwork } from "@/components/Artwork";
 import { Avatar } from "@/components/Avatar";
@@ -38,7 +38,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
     projectActivityFeed([p.id], 30),
     db.select().from(s.projectFollows).where(and(eq(s.projectFollows.projectId, p.id), eq(s.projectFollows.profileId, profile.id))),
   ]);
-  const [{ n: followers }] = await db.execute<{ n: number }>(sql`select count(*)::int as n from project_follows where project_id = ${p.id}`);
+  const [{ n: followers }] = await exec<{ n: number }>(sql`select count(*)::int as n from project_follows where project_id = ${p.id}`);
   const myUnconfirmed = credits.filter((c) => c.id === profile.id && !c.confirmed);
   const stageIdx = PROJECT_STATUSES.findIndex((x) => x.slug === p.status);
 

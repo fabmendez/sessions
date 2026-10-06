@@ -1,6 +1,6 @@
 import "./env";
-import postgres from "postgres";
-const client = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {} });
-await client.unsafe("drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;");
-await client.end();
+import { connect } from "./connect";
+const c = await connect({ max: 1 });
+await c.run("drop schema if exists public cascade; drop schema if exists drizzle cascade; create schema public;");
+await c.close();
 console.log("Database reset");

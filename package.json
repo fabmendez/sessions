@@ -11,9 +11,12 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed/index.ts",
-    "db:reset": "tsx src/db/reset.ts && npm run db:migrate && npm run db:seed"
+    "db:reset": "tsx src/db/reset.ts && npm run db:migrate && npm run db:seed",
+    "local": "tsx scripts/local.ts"
   },
   "dependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
     "@fontsource-variable/inter-tight": "^5.3.0",
     "@fontsource/instrument-serif": "^5.3.0",
     "@fontsource/jetbrains-mono": "^5.3.0",

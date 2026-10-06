@@ -5,7 +5,7 @@ import { requireProfile } from "@/lib/auth";
 import { threadFor } from "@/lib/messaging";
 import { categoryName, statusName } from "@/lib/taxonomy";
 import { deadlineText, money, timeAgo } from "@/lib/format";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 import { Inbox } from "@/components/Inbox";
 import { Avatar } from "@/components/Avatar";
@@ -29,7 +29,7 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
     db.select({ id: s.projects.id, title: s.projects.title }).from(s.projects).innerJoin(s.projectMembers, eq(s.projectMembers.projectId, s.projects.id))
       .where(and(eq(s.projectMembers.profileId, profile.id), eq(s.projectMembers.status, "active"))),
     db.select({ id: s.opportunities.id, title: s.opportunities.title }).from(s.opportunities).where(and(eq(s.opportunities.authorId, profile.id), eq(s.opportunities.status, "open"))),
-    db.execute<{ id: string; display_name: string }>(sql`
+    exec<{ id: string; display_name: string }>(sql`
       select p.id, p.display_name from connections c join creator_profiles p on p.id = case when c.requester_id = ${profile.id} then c.addressee_id else c.requester_id end
       where (c.requester_id = ${profile.id} or c.addressee_id = ${profile.id}) and c.status = 'accepted' and p.id <> ${t.other?.id ?? ""}`),
   ]);

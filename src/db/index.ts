@@ -1,11 +1,12 @@
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import type { SQL } from "drizzle-orm";
+import { connect, type Conn } from "./connect";
 import * as schema from "./schema";
 
-const url = process.env.DATABASE_URL ?? "postgres://postgres@localhost:5432/session";
-const globalForDb = globalThis as unknown as { pg?: ReturnType<typeof postgres> };
-const client = globalForDb.pg ?? postgres(url, { max: 10 });
-if (process.env.NODE_ENV !== "production") globalForDb.pg = client;
+// One connection per server process (survives dev hot-reloads).
+const g = globalThis as unknown as { __conn?: Promise<Conn> };
+const conn = (g.__conn ??= connect());
+const c = await conn;
 
-export const db = drizzle(client, { schema });
+export const db = c.db;
+export const exec = <T,>(q: SQL) => c.exec<T>(q);
 export { schema };

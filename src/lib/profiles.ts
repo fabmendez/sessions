@@ -1,6 +1,6 @@
 import "server-only";
 import { inArray, sql, eq, asc } from "drizzle-orm";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 
 export type WorkItem = {
@@ -27,13 +27,13 @@ export async function collabStats(ids: string[]): Promise<Map<string, CollabStat
   const out = new Map<string, CollabStats>(ids.map((id) => [id, { ...EMPTY }]));
   if (!ids.length) return out;
   const idList = sql.join(ids.map((i) => sql`${i}`), sql`, `);
-  const completed = await db.execute<{ profile_id: string; completed: number; pending: number }>(sql`
+  const completed = await exec<{ profile_id: string; completed: number; pending: number }>(sql`
     select profile_id,
       count(distinct project_id) filter (where confirmed)::int as completed,
       count(*) filter (where not confirmed)::int as pending
     from credits where profile_id in (${idList}) group by profile_id`);
   for (const r of completed) Object.assign(out.get(r.profile_id)!, { completed: r.completed, pendingCredits: r.pending });
-  const pairs = await db.execute<{ me: string; unique: number; repeat: number }>(sql`
+  const pairs = await exec<{ me: string; unique: number; repeat: number }>(sql`
     select me, count(*)::int as unique, count(*) filter (where shared >= 2)::int as repeat from (
       select c1.profile_id as me, c2.profile_id as other, count(distinct c1.project_id) as shared
       from credits c1 join credits c2 on c1.project_id = c2.project_id and c1.profile_id <> c2.profile_id
@@ -46,7 +46,7 @@ export async function collabStats(ids: string[]): Promise<Map<string, CollabStat
 
 /** Repeat collaborators for one profile, for "Worked with X twice" style trust signals. */
 export async function collaboratorsOf(profileId: string) {
-  return db.execute<{ id: string; handle: string; display_name: string; avatar_seed: number; avatar_url: string | null; shared: number }>(sql`
+  return exec<{ id: string; handle: string; display_name: string; avatar_seed: number; avatar_url: string | null; shared: number }>(sql`
     select p.id, p.handle, p.display_name, p.avatar_seed, p.avatar_url, count(distinct c1.project_id)::int as shared
     from credits c1
     join credits c2 on c1.project_id = c2.project_id and c1.profile_id <> c2.profile_id and c2.confirmed

@@ -1,13 +1,12 @@
 import "../env";
 import bcrypt from "bcryptjs";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
+import { connect } from "../connect";
 import * as s from "../schema";
 import { ROLES, GENRES, SKILLS, cityByName } from "../../lib/taxonomy";
 import { CREATORS, SCENES, PROJECTS, OPPORTUNITIES, CONNECTIONS, CONVERSATIONS } from "./data";
 
-const client = postgres(process.env.DATABASE_URL!, { max: 1, onnotice: () => {} });
-const db = drizzle(client, { schema: s });
+const conn = await connect({ max: 1 });
+const db = conn.db;
 
 const NOW = Date.now();
 const daysAgo = (d: number) => new Date(NOW - d * 86_400_000);
@@ -18,7 +17,7 @@ const nextSeed = () => (seedN = (seedN * 48271) % 2147483647);
 
 async function main() {
   // wipe (order matters for FKs; cascade handles most)
-  await client.unsafe(`truncate users, roles, genres, skills, scenes, conversations restart identity cascade`);
+  await conn.run(`truncate users, roles, genres, skills, scenes, conversations restart identity cascade`);
 
   const roleRows = await db.insert(s.roles).values(ROLES.map((r, i) => ({ slug: r.slug, name: r.name, sort: i }))).returning();
   const genreRows = await db.insert(s.genres).values(GENRES.map((g) => ({ slug: g.slug, name: g.name }))).returning();
@@ -137,4 +136,4 @@ const eqProfile = (id: string) => eq(s.workSamples.profileId, id);
 function hashString(str: string) { let h = 2166136261; for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return Math.abs(h); }
 
 await main();
-await client.end();
+await conn.close();

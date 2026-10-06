@@ -6,7 +6,7 @@ import { loadOpportunities, loadProjects, openNow, projectActivityFeed } from "@
 import { matchCreator, matchOpportunity } from "@/lib/match";
 import { unreadCount } from "@/lib/inbox";
 import { timeAgo, plural } from "@/lib/format";
-import { db } from "@/db";
+import { db, exec } from "@/db";
 import * as s from "@/db/schema";
 import { CreatorCard, OpportunityCard } from "@/components/cards";
 import { Avatar } from "@/components/Avatar";
@@ -44,7 +44,7 @@ export default async function RadarPage({ searchParams }: { searchParams: Promis
   ]);
 
   // Creator matches: exclude people I'm already connected to or already working with.
-  const connected = new Set((await db.execute<{ id: string }>(sql`
+  const connected = new Set((await exec<{ id: string }>(sql`
     select case when requester_id = ${me.id} then addressee_id else requester_id end as id from connections
     where (requester_id = ${me.id} or addressee_id = ${me.id}) and status = 'accepted'`)).map((r) => r.id));
   const others = await loadProfiles(everyone.filter((id) => id !== me.id));
