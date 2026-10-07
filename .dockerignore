@@ -1,5 +1,11 @@
 node_modules
 .next
 .env
-public/uploads
+.env.*
+!.env.example
 .pglite
+.pglite.lock
+/uploads
+/public/uploads
+.git
+*.tsbuildinfo

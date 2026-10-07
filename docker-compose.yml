@@ -1,18 +1,47 @@
+# Session on a VPS: app + its own PostgreSQL. Settings come from .env next to this file
+# (deploy.sh creates it with a random database password).
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: session
+      POSTGRES_USER: session
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: session
     volumes: [pgdata:/var/lib/postgresql/data]
-    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U session -d session"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    # No ports published: the database is only reachable from the app container.
+
   app:
     build: .
+    restart: unless-stopped
+    depends_on:
+      db: { condition: service_healthy }
     environment:
-      DATABASE_URL: postgres://postgres:session@db:5432/session
-    ports: ["3000:3000"]
-    volumes: [uploads:/app/public/uploads]
-    depends_on: [db]
+      DATABASE_URL: postgres://session:${POSTGRES_PASSWORD}@db:5432/session
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}   # set to true once it's served over HTTPS
+      SEED_DEMO: ${SEED_DEMO:-true}            # add demo creators on first boot
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes: [uploads:/data/uploads]
+    # To serve on a domain through your existing Traefik later: uncomment, set the host and
+    # Traefik's network/entrypoint/cert resolver names, then set COOKIE_SECURE=true in .env.
+    # labels:
+    #   - traefik.enable=true
+    #   - traefik.http.routers.session.rule=Host(`session.example.com`)
+    #   - traefik.http.routers.session.entrypoints=websecure
+    #   - traefik.http.routers.session.tls.certresolver=letsencrypt
+    #   - traefik.http.services.session.loadbalancer.server.port=3000
+    # networks: [default, traefik]
+
 volumes:
   pgdata:
   uploads:
+
+# networks:
+#   traefik:
+#     external: true

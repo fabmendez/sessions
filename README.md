@@ -21,7 +21,9 @@ npm run local            # starts the built-in database + the app
 
 The built-in database is embedded PostgreSQL compiled to WebAssembly ([PGlite](https://pglite.dev)), stored in `./.pglite`, and served to the app on 127.0.0.1:5433 by `scripts/local.ts` — it works anywhere Node does, including Windows on ARM.
 
-**With a real PostgreSQL server** (production, VPS): set `DATABASE_URL` in `.env`, then `npm run db:migrate && npm run db:seed && npm run dev` (or `npm run build && npm start`). Docker: `docker compose up -d --build`, then `docker compose run --rm app npm run db:seed`.
+**On a VPS:** double-click `deploy.cmd` (Windows) — it packs the project, uploads it to the server set at the top of the file, and runs `deploy.sh` there, which starts the app and its own PostgreSQL with Docker Compose, creates the database on first boot and adds the demo data. On any machine you can also copy the folder to the server and run `bash deploy.sh`. Settings live in `.env` on the server (`APP_PORT`, `COOKIE_SECURE`, `SEED_DEMO`); uploads are kept in a Docker volume. Re-run `deploy.cmd` to ship updates — data is kept. For a domain via Traefik, see the commented labels in `docker-compose.yml`.
+
+**With your own PostgreSQL server:** set `DATABASE_URL` in `.env`, then `npm run db:boot && npm run dev` (or `npm run build && npm start`).
 
 **Demo login:** `lewis@session.test` / `session` (pre-filled on the login page). Every seeded creator uses the password `session` — log in as `amara@session.test`, `thandi@session.test` etc. to see the other side of an interaction.
 

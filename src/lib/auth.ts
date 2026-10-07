@@ -8,6 +8,8 @@ import { db } from "@/db";
 import { sessions, users, creatorProfiles } from "@/db/schema";
 
 const COOKIE = "session_token";
+// HTTPS-only cookies in production, unless explicitly turned off (e.g. serving over http://ip:port).
+const secureCookies = () => process.env.NODE_ENV === "production" && process.env.COOKIE_SECURE !== "false";
 const TTL_DAYS = 30;
 const hashToken = (t: string) => createHash("sha256").update(t).digest("hex");
 
@@ -16,7 +18,7 @@ export async function createSession(userId: string) {
   const expiresAt = new Date(Date.now() + TTL_DAYS * 86_400_000);
   await db.insert(sessions).values({ id: hashToken(token), userId, expiresAt });
   (await cookies()).set(COOKIE, token, {
-    httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", expires: expiresAt,
+    httpOnly: true, sameSite: "lax", secure: secureCookies(), path: "/", expires: expiresAt,
   });
 }
 

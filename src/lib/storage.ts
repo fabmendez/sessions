@@ -4,7 +4,8 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 
 /**
- * Media storage. The local adapter writes to /public/uploads for development.
+ * Media storage. The local adapter writes to UPLOAD_DIR (default ./uploads) and files are served by
+ * src/app/uploads/[...path]/route.ts, so uploads made after `next build` work in production.
  * To use S3/R2, implement `put` with the AWS SDK and return the public URL — callers don't change.
  */
 export interface Storage { put(file: File, folder: string): Promise<string> }
@@ -17,7 +18,7 @@ export const localStorage: Storage = {
     if (!ALLOWED.test(file.type)) throw new Error("Upload an audio file (MP3, WAV, M4A, OGG, FLAC) or an image (PNG, JPG, WebP).");
     if (file.size > MAX_BYTES) throw new Error("Files can be up to 10 MB.");
     const ext = (file.name.split(".").pop() ?? "bin").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const dir = path.join(process.cwd(), "public", "uploads", folder);
+    const dir = path.join(uploadRoot(), folder);
     await mkdir(dir, { recursive: true });
     const name = `${randomUUID()}.${ext}`;
     await writeFile(path.join(dir, name), Buffer.from(await file.arrayBuffer()));
@@ -26,6 +27,10 @@ export const localStorage: Storage = {
 };
 
 export const storage: Storage = localStorage;
+
+export function uploadRoot() {
+  return path.resolve(process.env.UPLOAD_DIR ?? path.join(process.cwd(), "uploads"));
+}
 
 /** Returns a URL for a non-empty uploaded file, else null. */
 export async function maybeUpload(v: FormDataEntryValue | null, folder: string) {
