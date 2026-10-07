@@ -21,7 +21,16 @@ npm run local            # starts the built-in database + the app
 
 The built-in database is embedded PostgreSQL compiled to WebAssembly ([PGlite](https://pglite.dev)), stored in `./.pglite`, and served to the app on 127.0.0.1:5433 by `scripts/local.ts` — it works anywhere Node does, including Windows on ARM.
 
-**On a VPS:** double-click `deploy.cmd` (Windows) — it packs the project, uploads it to the server set at the top of the file, and runs `deploy.sh` there, which starts the app and its own PostgreSQL with Docker Compose, creates the database on first boot and adds the demo data. On any machine you can also copy the folder to the server and run `bash deploy.sh`. Settings live in `.env` on the server (`APP_PORT`, `COOKIE_SECURE`, `SEED_DEMO`); uploads are kept in a Docker volume. Re-run `deploy.cmd` to ship updates — data is kept. For a domain via Traefik, see the commented labels in `docker-compose.yml`.
+**On a VPS (from GitHub):** needs Docker with Compose v2.
+
+```bash
+git clone https://github.com/fabmendez/session.git /opt/session
+cd /opt/session && bash deploy.sh
+```
+
+`deploy.sh` starts the app and its own PostgreSQL with Docker Compose, creates the database on first boot and adds the demo data, then prints the URL. Settings live in `/opt/session/.env` (created on first run: `APP_PORT`, `COOKIE_SECURE`, `SEED_DEMO`, random DB password); uploads are kept in a Docker volume. To update: `cd /opt/session && git pull && bash deploy.sh` — data is kept. For a domain via Traefik, see the commented labels in `docker-compose.yml`.
+
+Without GitHub, `deploy.cmd` (Windows) packs the folder, uploads it over SSH and runs `deploy.sh` for you.
 
 **With your own PostgreSQL server:** set `DATABASE_URL` in `.env`, then `npm run db:boot && npm run dev` (or `npm run build && npm start`).
 
