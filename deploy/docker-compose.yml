@@ -1,0 +1,37 @@
+# Session for panel Docker managers (e.g. Hostinger "Compose from URL"): pulls the prebuilt image,
+# no source code or build needed. Change POSTGRES_PASSWORD below before deploying if you like
+# (the database port is never published outside the server).
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: session
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-session-db-internal}
+      POSTGRES_DB: session
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U session -d session"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  app:
+    image: ghcr.io/fabmendez/sessions:latest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://session:${POSTGRES_PASSWORD:-session-db-internal}@db:5432/session
+      COOKIE_SECURE: "false"   # set to "true" once served over HTTPS
+      SEED_DEMO: "true"        # add demo creators on first boot
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads:/data/uploads
+
+volumes:
+  pgdata:
+  uploads:

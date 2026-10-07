@@ -18,6 +18,7 @@ services:
 
   app:
     build: .
+    image: ghcr.io/fabmendez/sessions:latest
     restart: unless-stopped
     depends_on:
       db: { condition: service_healthy }
