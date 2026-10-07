@@ -17,7 +17,6 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-for /f "delims=" %%V in ('node -v') do echo Using Node %%V
 
 if not exist node_modules (
   echo Installing dependencies - first run only, takes a few minutes...
