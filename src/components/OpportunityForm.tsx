@@ -12,7 +12,7 @@ export function OpportunityForm({ genres, projects, scenes, defaultProject, city
   const [paid, setPaid] = useState(true);
   const [remote, setRemote] = useState(true);
   return (
-    <form action={action} className="space-y-10" encType="multipart/form-data">
+    <form action={action} className="space-y-10">
       <fieldset>
         <legend className="mb-3 font-medium">What do you need?</legend>
         <div className="flex flex-wrap gap-2">

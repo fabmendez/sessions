@@ -64,7 +64,7 @@ export function ProfileForm({
   const error = stepError ?? state?.error;
 
   return (
-    <form ref={formRef} action={action} className="mx-auto max-w-2xl" encType="multipart/form-data">
+    <form ref={formRef} action={action} className="mx-auto max-w-2xl">
       <input type="hidden" name="mode" value={mode} />
       <input type="hidden" name="sampleSlots" value={slots} />
 

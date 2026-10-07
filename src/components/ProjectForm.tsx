@@ -7,7 +7,7 @@ export function ProjectForm({ genres, scenes, defaultRole }: { genres: { slug: s
   const [state, action, pending] = useActionState<ActionState, FormData>(createProject, undefined);
   const fileCls = "field text-[13px] file:mr-3 file:rounded-full file:border-0 file:bg-raised file:px-3 file:py-1 file:text-text";
   return (
-    <form action={action} className="space-y-6" encType="multipart/form-data">
+    <form action={action} className="space-y-6">
       <div><label className="label" htmlFor="title">Project name</label><input id="title" name="title" required className="field text-lg" placeholder="After Hours Choir" /></div>
       <div><label className="label" htmlFor="description">What is it?</label>
         <textarea id="description" name="description" rows={3} className="field" placeholder="What it sounds like, where it's at, what it still needs." /></div>

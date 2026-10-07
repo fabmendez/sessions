@@ -147,7 +147,7 @@ export default async function ProjectPage({ params, searchParams }: { params: Pr
           <section>
             <h2 className="section-title mb-5">Activity</h2>
             {isMember && !done && (
-              <form action={postProjectUpdate} className="mb-6 rounded-2xl border border-line p-4" encType="multipart/form-data">
+              <form action={postProjectUpdate} className="mb-6 rounded-2xl border border-line p-4">
                 <input type="hidden" name="projectId" value={p.id} />
                 <label htmlFor="update" className="sr-only">Post an update</label>
                 <textarea id="update" name="body" rows={2} maxLength={500} className="w-full resize-none bg-transparent focus:outline-none" placeholder="Share progress — a new bounce, a decision, what's next" />
