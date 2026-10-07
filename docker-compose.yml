@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: session
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-session-db-internal}   # DB port is never published; deploy.sh sets a random one
       POSTGRES_DB: session
     volumes: [pgdata:/var/lib/postgresql/data]
     healthcheck:
@@ -22,7 +22,7 @@ services:
     depends_on:
       db: { condition: service_healthy }
     environment:
-      DATABASE_URL: postgres://session:${POSTGRES_PASSWORD}@db:5432/session
+      DATABASE_URL: postgres://session:${POSTGRES_PASSWORD:-session-db-internal}@db:5432/session
       COOKIE_SECURE: ${COOKIE_SECURE:-false}   # set to true once it's served over HTTPS
       SEED_DEMO: ${SEED_DEMO:-true}            # add demo creators on first boot
     ports:
