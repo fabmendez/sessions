@@ -24,7 +24,7 @@ The built-in database is embedded PostgreSQL compiled to WebAssembly ([PGlite](h
 **On a VPS (from GitHub):** needs Docker with Compose v2.
 
 ```bash
-git clone https://github.com/fabmendez/session.git /opt/session
+git clone https://github.com/fabmendez/sessions.git /opt/session
 cd /opt/session && bash deploy.sh
 ```
 
