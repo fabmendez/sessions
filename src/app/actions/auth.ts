@@ -1,32 +1,44 @@
 "use server";
 import bcrypt from "bcryptjs";
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { z } from "zod";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
-import { users } from "@/db/schema";
+import { invites, users } from "@/db/schema";
+import { findInvite } from "@/lib/invites";
 import { createSession, destroySession } from "@/lib/auth";
 import { LIMITS, blockedFor, hit, clear, clientIp, waitMessage } from "@/lib/rate-limit";
 
 export type FormState = { error?: string } | undefined;
 
-const creds = z.object({
-  email: z.string().trim().toLowerCase().email("Enter a valid email address."),
-  password: z.string().min(8, "Use at least 8 characters for your password."),
-});
-
-export async function signup(_: FormState, form: FormData): Promise<FormState> {
-  const parsed = creds.safeParse(Object.fromEntries(form));
-  if (!parsed.success) return { error: parsed.error.issues[0].message };
-  const { email, password } = parsed.data;
-  const ipKey: [string, typeof LIMITS.signupIp] = [`signup:ip:${await clientIp()}`, LIMITS.signupIp];
+/** Create an account from an approved invite link. The email comes from the invite, not the form. */
+export async function acceptInvite(_: FormState, form: FormData): Promise<FormState> {
+  const token = String(form.get("token") ?? "");
+  const password = String(form.get("password") ?? "");
+  if (password.length < 8) return { error: "Use at least 8 characters for your password." };
+  const ipKey: [string, typeof LIMITS.inviteIp] = [`invite:ip:${await clientIp()}`, LIMITS.inviteIp];
   const wait = await blockedFor([ipKey]);
   if (wait) return { error: waitMessage(wait) };
-  await hit([ipKey]);
-  const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, email));
-  if (exists) return { error: "There's already an account with that email. Log in instead." };
-  const [u] = await db.insert(users).values({ email, passwordHash: await bcrypt.hash(password, 10) }).returning();
-  await createSession(u.id);
+
+  const inv = await findInvite(db, token);
+  if (inv.state !== "valid") {
+    await hit([ipKey]);
+    return { error: "This invite link no longer works. Ask whoever invited you for a new one." };
+  }
+  const [exists] = await db.select({ id: users.id }).from(users).where(eq(users.email, inv.email));
+  if (exists) return { error: "There's already an account with this email. Log in instead." };
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  // Claim the invite and create the account together, so one link can only ever make one account.
+  const user = await db.transaction(async (tx) => {
+    const [claimed] = await tx.update(invites).set({ acceptedAt: new Date() })
+      .where(and(eq(invites.id, inv.id), isNull(invites.acceptedAt))).returning({ id: invites.id });
+    if (!claimed) return null;
+    const [u] = await tx.insert(users).values({ email: inv.email, passwordHash }).returning();
+    await tx.update(invites).set({ acceptedUserId: u.id }).where(eq(invites.id, inv.id));
+    return u;
+  });
+  if (!user) return { error: "This invite has already been used. Log in instead." };
+  await createSession(user.id);
   redirect("/onboarding");
 }
 

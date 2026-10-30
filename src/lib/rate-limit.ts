@@ -14,8 +14,8 @@ export const LIMITS = {
   loginEmail: { max: 10, windowMs: 15 * 60_000 },
   /** Failed logins from one address (covers guessing across many accounts). */
   loginIp: { max: 30, windowMs: 15 * 60_000 },
-  /** Accounts created from one address. */
-  signupIp: { max: 5, windowMs: 60 * 60_000 },
+  /** Bad or used invite links tried from one address (invite tokens are unguessable; this stops scripted probing). */
+  inviteIp: { max: 20, windowMs: 60 * 60_000 },
 } satisfies Record<string, Limit>;
 
 /** Seconds until every given key is under its limit again, or 0 if none is blocked. Doesn't count an attempt. */

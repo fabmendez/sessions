@@ -28,13 +28,23 @@ git clone https://github.com/fabmendez/sessions.git /opt/session
 cd /opt/session && bash deploy.sh
 ```
 
-`deploy.sh` starts the app and its own PostgreSQL with Docker Compose, creates the database on first boot and adds the demo data, then prints the URL. Settings live in `/opt/session/.env` (created on first run: `APP_PORT`, `COOKIE_SECURE`, `SEED_DEMO`, random DB password); uploads are kept in a Docker volume. To update: `cd /opt/session && git pull && bash deploy.sh` — data is kept. For a domain via Traefik, see the commented labels in `docker-compose.yml`.
+`deploy.sh` starts the app and its own PostgreSQL with Docker Compose, creates the database on first boot and adds the demo data, then prints the URL and the command for your first invite. Settings live in `/opt/session/.env` (created on first run: `APP_PORT`, `COOKIE_SECURE`, `SEED_DEMO`, `ADMIN_EMAILS`, `INVITES_PER_MEMBER`, optional `RESEND_API_KEY`/`EMAIL_FROM`, random DB password); uploads are kept in a Docker volume. To update: `cd /opt/session && git pull && bash deploy.sh` — data is kept. For a domain via Traefik, see the commented labels in `docker-compose.yml`.
 
 Without GitHub, `deploy.cmd` (Windows) packs the folder, uploads it over SSH and runs `deploy.sh` for you.
 
 **With your own PostgreSQL server:** set `DATABASE_URL` in `.env`, then `npm run db:boot && npm run dev` (or `npm run build && npm start`).
 
-**Demo login:** `lewis@session.test` / `session` (pre-filled on the login page). Every seeded creator uses the password `session` — log in as `amara@session.test`, `thandi@session.test` etc. to see the other side of an interaction.
+## Invite-only
+
+There's no public sign-up. A member invites someone from **Invite people** (account menu) with a line about who they are; an admin approves or declines it in **Admin** (`/admin`); the approved invite gets a link, and the person sets a password from that link and goes straight into onboarding. Admins' own invites skip approval.
+
+- **Admins** are the emails in `ADMIN_EMAILS` (comma-separated). Non-admins get a 404 at `/admin`.
+- **Allowance:** each member can have `INVITES_PER_MEMBER` (default 5) invites out at once. Declined, expired and withdrawn invites free a slot.
+- **Links** last 14 days and work once. Only a hash of the token is stored, so a link is shown when it's made; "Get link" / "New link" makes a fresh one and the old one stops working.
+- **Email (optional):** set `RESEND_API_KEY` and `EMAIL_FROM` (a sender on a domain verified at [resend.com](https://resend.com)) and approved links are emailed. Without them, the admin or inviter copies the link and sends it themselves.
+- **First invite on a fresh server:** `docker compose -p session exec -e APP_URL=http://YOUR-IP:PORT app npm run invite -- you@example.com` (locally: `npm run invite -- you@example.com`). Add yourself to `ADMIN_EMAILS` too.
+
+**Demo login:** `lewis@session.test` / `session` (pre-filled on the login page when the demo data is loaded). With `ADMIN_EMAILS=lewis@session.test` in `.env` (as in `.env.example`), Lewis is an admin. Every seeded creator uses the password `session` — log in as `amara@session.test`, `thandi@session.test` etc. to see the other side of an interaction.
 
 ## What's in the seed
 
@@ -55,10 +65,11 @@ drizzle/                   SQL migrations
 src/lib/match.ts           explainable matching (creator↔creator, creator↔open call)
 src/lib/profiles.ts        profile loading + collaboration stats from confirmed credits
 src/lib/work.ts            projects, open calls, credits, activity loaders
-src/lib/auth.ts            sessions (hashed tokens, httpOnly cookie)
+src/lib/auth.ts            sessions (hashed tokens, httpOnly cookie), requireAdmin
+src/lib/invites.ts         invite-only signups: allowance, approval, links, email
 src/lib/storage.ts         media storage interface (local disk adapter)
 src/app/actions/           server actions — every mutation lives here
-src/app/(app)/             signed-in routes: radar, discover, u/[handle], projects, opportunities, scenes, messages
+src/app/(app)/             signed-in routes: radar, discover, u/[handle], projects, opportunities, scenes, messages, invites, admin
 ```
 
 ## Key decisions
@@ -68,7 +79,7 @@ src/app/(app)/             signed-in routes: radar, discover, u/[handle], projec
 - **Open roles are open calls.** An opportunity with a `project_id` *is* the project's open position, so there's one apply/review flow. Accepting an applicant adds them to the project, moves it to In progress, and opens a message thread.
 - **Finishing a project issues credits** from its members (owner can edit wording or leave someone off). The owner's credit is auto-confirmed; everyone else confirms from Radar, the project page, or their profile.
 - **Private feedback is reserved, not built.** `collaborator_feedback` exists in the schema (author → subject, per project, never aggregated) so it can be added without migrations to existing data.
-- **Login and signup are rate limited** (`src/lib/rate-limit.ts`): 10 failed logins per account and 30 per IP every 15 minutes, 5 signups per IP per hour. Counters live in Postgres (`rate_limits`), so no extra service is needed.
+- **Login and invite links are rate limited** (`src/lib/rate-limit.ts`): 10 failed logins per account and 30 per IP every 15 minutes, 20 bad invite links per IP per hour. Counters live in Postgres (`rate_limits`), so no extra service is needed.
 - **OAuth is reserved, not wired.** Email/password auth is live; the `accounts` table is ready for Google/Apple/Spotify providers.
 - **Messaging polls** every 8 s while a thread is open. Swap for SSE/websockets when needed.
 - **Scenes** are membership + filtered content (things posted into the scene, or matching its genre and city). Discussions and events are left out of the MVP.

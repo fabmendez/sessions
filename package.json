@@ -13,7 +13,8 @@
     "db:seed": "tsx src/db/seed/index.ts",
     "db:reset": "tsx src/db/reset.ts && npm run db:migrate && npm run db:seed",
     "local": "tsx scripts/local.ts",
-    "db:boot": "tsx src/db/boot.ts"
+    "db:boot": "tsx src/db/boot.ts",
+    "invite": "tsx scripts/invite.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8",

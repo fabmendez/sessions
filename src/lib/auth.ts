@@ -1,7 +1,8 @@
 import "server-only";
 import { cache } from "react";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
+import { isAdmin } from "./invites";
 import { createHash, randomBytes } from "node:crypto";
 import { eq, and, gt } from "drizzle-orm";
 import { db } from "@/db";
@@ -49,6 +50,13 @@ export async function requireProfile() {
   if (!v) redirect("/login");
   if (!v.profile?.onboardedAt) redirect("/onboarding");
   return { user: v.user, profile: v.profile! };
+}
+
+/** For the admin backend: anyone else gets a 404, so the page's existence isn't advertised. */
+export async function requireAdmin() {
+  const v = await requireProfile();
+  if (!isAdmin(v.user.email)) notFound();
+  return v;
 }
 
 export async function requireUser() {

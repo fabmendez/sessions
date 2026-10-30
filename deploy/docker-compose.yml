@@ -27,6 +27,11 @@ services:
       DATABASE_URL: postgres://session:${POSTGRES_PASSWORD:-session-db-internal}@db:5432/session
       COOKIE_SECURE: "false"   # set to "true" once served over HTTPS
       SEED_DEMO: "true"        # add demo creators on first boot
+      ADMIN_EMAILS: ""         # comma-separated; admins approve invites at /admin
+      INVITES_PER_MEMBER: "5"
+      APP_URL: ""              # public address, used in invite links (optional)
+      RESEND_API_KEY: ""       # optional: email invite links via resend.com
+      EMAIL_FROM: ""           # e.g. Session <invites@yourdomain.com>
     ports:
       - "3000:3000"
     volumes:

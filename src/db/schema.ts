@@ -18,7 +18,8 @@ export const applicationStatusEnum = pgEnum("application_status", ["pending", "s
 export const projectStatusEnum = pgEnum("project_status", ["idea", "recruiting", "in_progress", "mixing", "finished", "released"]);
 export const memberStatusEnum = pgEnum("member_status", ["invited", "active", "left"]);
 export const sceneKindEnum = pgEnum("scene_kind", ["genre", "city", "community"]);
-export const messageKindEnum = pgEnum("message_kind", ["text", "project_invite", "opportunity_link", "profile_link", "project_link"]);
+export const inviteStatusEnum = pgEnum("invite_status", ["requested", "approved", "declined"]);
+export const messageKindEnum =pgEnum("message_kind", ["text", "project_invite", "opportunity_link", "profile_link", "project_link"]);
 
 // ─── Auth ─────────────────────────────────────────────────────────────────
 export const users = pgTable("users", {
@@ -34,12 +35,31 @@ export const sessions = pgTable("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, (t) => [index("sessions_user_idx").on(t.userId)]);
 
-/** Fixed-window counters for login/signup rate limiting (see src/lib/rate-limit.ts). */
+/** Fixed-window counters for login and invite rate limiting (see src/lib/rate-limit.ts). */
 export const rateLimits = pgTable("rate_limits", {
-  key: text("key").primaryKey(), // e.g. "login:email:x@y.z", "login:ip:1.2.3.4", "signup:ip:1.2.3.4"
+  key: text("key").primaryKey(), // e.g. "login:email:x@y.z", "login:ip:1.2.3.4", "invite:ip:1.2.3.4"
   count: integer("count").notNull().default(0),
   resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
 }, (t) => [index("rate_limits_reset_idx").on(t.resetAt)]);
+
+/**
+ * Session is invite-only. A member requests an invite → an admin approves it (admins' own invites skip that step)
+ * → the approved invite gets a link → the account is created from that link, with the invite's email.
+ */
+export const invites = pgTable("invites", {
+  id: id(),
+  email: text("email").notNull(), // the account is created with this email
+  note: text("note").notNull().default(""), // the inviter's "who are they?" for the admin
+  status: inviteStatusEnum("status").notNull().default("requested"),
+  invitedById: text("invited_by_id").references(() => creatorProfiles.id, { onDelete: "set null" }), // null = created from the command line
+  createdAt: created(),
+  reviewedById: text("reviewed_by_id").references(() => creatorProfiles.id, { onDelete: "set null" }),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  tokenHash: text("token_hash").unique(), // set on approval; the link's token, stored hashed
+  expiresAt: timestamp("expires_at", { withTimezone: true }), // set on approval
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  acceptedUserId: text("accepted_user_id").references(() => users.id, { onDelete: "set null" }),
+}, (t) => [index("invites_inviter_idx").on(t.invitedById), index("invites_email_idx").on(t.email), index("invites_status_idx").on(t.status)]);
 
 /** Reserved for OAuth providers (Google, Apple, Spotify…). */
 export const accounts = pgTable("accounts", {

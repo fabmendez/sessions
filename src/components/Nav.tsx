@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { Avatar } from "./Avatar";
 import { logout } from "@/app/actions/auth";
 
-type Me = { handle: string; name: string; seed: number; avatarUrl: string | null };
+type Me = { handle: string; name: string; seed: number; avatarUrl: string | null; admin: boolean; reviews: number };
 
 const LINKS = [
   { href: "/radar", label: "Radar", icon: RadarIcon },
@@ -42,10 +42,19 @@ export function Nav({ me, unread }: { me: Me; unread: number }) {
               <PostMenu className="absolute right-0 top-11 w-64" />
             </details>
             <details className="relative">
-              <summary className="cursor-pointer list-none rounded-full" aria-label="Account menu"><Avatar name={me.name} seed={me.seed} url={me.avatarUrl} /></summary>
+              <summary className="relative cursor-pointer list-none rounded-full" aria-label="Account menu">
+                <Avatar name={me.name} seed={me.seed} url={me.avatarUrl} />
+                {me.reviews > 0 && <Badge n={me.reviews} />}
+              </summary>
               <div className="absolute right-0 top-12 z-50 w-52 rounded-xl border border-line bg-raised p-1.5 shadow-2xl">
                 <Link href={`/u/${me.handle}`} className="block rounded-lg px-3 py-2 text-sm hover:bg-surface">Your profile</Link>
                 <Link href="/profile/edit" className="block rounded-lg px-3 py-2 text-sm hover:bg-surface">Edit profile</Link>
+                <Link href="/invites" className="block rounded-lg px-3 py-2 text-sm hover:bg-surface">Invite people</Link>
+                {me.admin && (
+                  <Link href="/admin" className="flex items-center justify-between rounded-lg px-3 py-2 text-sm hover:bg-surface">
+                    Admin {me.reviews > 0 && <span className="rounded-full bg-signal px-1.5 text-[11px] font-semibold text-signal-ink">{me.reviews}</span>}
+                  </Link>
+                )}
                 <form action={logout}><button className="w-full rounded-lg px-3 py-2 text-left text-sm text-muted hover:bg-surface hover:text-text">Log out</button></form>
               </div>
             </details>
