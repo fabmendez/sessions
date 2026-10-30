@@ -27,7 +27,7 @@ export default async function Landing() {
         <Wordmark />
         <nav className="flex items-center gap-2">
           <Link href="/login" className="btn-quiet">Log in</Link>
-          <Link href="/signup" className="btn-primary">Join</Link>
+          <span className="hidden text-sm text-faint sm:inline">Invite only</span>
         </nav>
       </header>
 
@@ -40,9 +40,9 @@ export default async function Landing() {
               Session is where producers, vocalists, writers, DJs and engineers find each other, make the record, and get the credit. No follower counts. Your reputation is the work you've finished with other people.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/signup" className="btn-primary h-12 px-6 text-base">Make your profile</Link>
-              <Link href="/login" className="btn-secondary h-12 px-6 text-base">Try the demo</Link>
+              <Link href="/login" className="btn-primary h-12 px-6 text-base">Log in</Link>
             </div>
+            <p className="mt-4 text-sm text-faint">Session is invite-only. Know someone on it? Ask them to invite you.</p>
           </div>
 
           {project && (
@@ -98,7 +98,7 @@ export default async function Landing() {
                 </div>
               ))}
             </div>
-            <Link href="/signup" className="btn-primary mt-8">Join to apply</Link>
+            <Link href="/login" className="btn-primary mt-8">Log in to apply</Link>
           </section>
         )}
       </main>

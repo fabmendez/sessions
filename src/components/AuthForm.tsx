@@ -12,7 +12,7 @@ export function AuthForm({ action, submit, demo }: { action: (s: FormState, f: F
       </div>
       <div>
         <label className="label" htmlFor="password">Password</label>
-        <input id="password" name="password" type="password" autoComplete={demo ? "current-password" : "new-password"} required minLength={demo ? 1 : 8} className="field" defaultValue={demo ? "session" : undefined} />
+        <input id="password" name="password" type="password" autoComplete="current-password" required className="field" defaultValue={demo ? "session" : undefined} />
       </div>
       {state?.error && <p role="alert" className="text-sm text-stop">{state.error}</p>}
       <button className="btn-primary w-full" disabled={pending}>{pending ? "One moment…" : submit}</button>
