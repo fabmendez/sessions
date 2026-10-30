@@ -68,6 +68,7 @@ src/app/(app)/             signed-in routes: radar, discover, u/[handle], projec
 - **Open roles are open calls.** An opportunity with a `project_id` *is* the project's open position, so there's one apply/review flow. Accepting an applicant adds them to the project, moves it to In progress, and opens a message thread.
 - **Finishing a project issues credits** from its members (owner can edit wording or leave someone off). The owner's credit is auto-confirmed; everyone else confirms from Radar, the project page, or their profile.
 - **Private feedback is reserved, not built.** `collaborator_feedback` exists in the schema (author → subject, per project, never aggregated) so it can be added without migrations to existing data.
+- **Login and signup are rate limited** (`src/lib/rate-limit.ts`): 10 failed logins per account and 30 per IP every 15 minutes, 5 signups per IP per hour. Counters live in Postgres (`rate_limits`), so no extra service is needed.
 - **OAuth is reserved, not wired.** Email/password auth is live; the `accounts` table is ready for Google/Apple/Spotify providers.
 - **Messaging polls** every 8 s while a thread is open. Swap for SSE/websockets when needed.
 - **Scenes** are membership + filtered content (things posted into the scene, or matching its genre and city). Discussions and events are left out of the MVP.

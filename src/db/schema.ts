@@ -34,6 +34,13 @@ export const sessions = pgTable("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
 }, (t) => [index("sessions_user_idx").on(t.userId)]);
 
+/** Fixed-window counters for login/signup rate limiting (see src/lib/rate-limit.ts). */
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(), // e.g. "login:email:x@y.z", "login:ip:1.2.3.4", "signup:ip:1.2.3.4"
+  count: integer("count").notNull().default(0),
+  resetAt: timestamp("reset_at", { withTimezone: true }).notNull(),
+}, (t) => [index("rate_limits_reset_idx").on(t.resetAt)]);
+
 /** Reserved for OAuth providers (Google, Apple, Spotify…). */
 export const accounts = pgTable("accounts", {
   id: id(),
